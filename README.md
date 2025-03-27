@@ -4,8 +4,11 @@
 
 **`VersionControl.py` is a program designed to help the user easily keep track of the changes across multiple files!**
 
-![what running the program might look like!](Example.png)
+<img src="Example.png" alt="What running the program might look like!" style="border:2px solid white;">
 
+*What running the program might look like!*
+
+## Basic Overview
 1. **Setup**: Ensure you have Python installed on your system. Clone the repository containing `VersionControl.py` to your local machine.
 
 2. **Features**:
