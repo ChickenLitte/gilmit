@@ -19,34 +19,39 @@ class VersionControl:
         self.old_input = input
 
     def saveCurrent(self, filename, file):
-
         if self.files.__contains__(filename):
-            self.fileChange = StringDiff(self.files.getitem(filename).getitem(self.files.getitem(filename).len()),file)
-            self.version = self.files.getitem(filename).len() + 1
-            self.files.getitem(filename).setitem(self.version,self.fileChange)
+            file_entry = self.files.__getitem__(filename)
+            self.version = file_entry.__len__()
+            file_entry.__setitem__(self.version, StringDiff(file_entry.__getitem__(self.version-1), file))
         else:
-            self.versions = OrderedMap()
+            # Ensure the value for the filename key is an OrderedMap
+            self.files.__setitem__(filename, OrderedMap())
             self.version = 0
-            self.files.__setitem__(0,file)
-        
+            self.files.__getitem__(filename).__setitem__(self.version,file)
 
         self.input("saved file: " + filename + ", version: " + str(self.version) + " \n", True)
 
-    def restoreVersion(self, file, version):#returns the restored version, recursive
-
-        print("restoring version", "file:" + file + "version:", version)
-        print("restore version", "file:" + file + "version:", version)
+    def restoreVersion(self, filename, version):#returns the restored version, recursive
+        
+        restoredFile = self.files.__getitem__(filename).__getitem__(0)
+        for key in list(self.files.__getitem__(filename).tree.keys())[1:]:
+            restoredFile = StringDiff.apply_diff(restoredFile, self.files.__getitem__(filename).__getitem__(key))
+            if key == version:
+                break
+        
+        return restoredFile
+            
     
     def returnLog(self):
 
-        self.input("returning log:",True)
+        self.input("returning log:\n",True)
         
         for key in self.files.tree.keys():
-            self.input("file: " + str(key) + "\n",True)
-            for key2 in self.files.__getitem__(key).tree.__keys__():
-                self.input("version: " + str(key2) + "\n",True)
-                self.input(self.files.__getitem__(key).__getitem__(key2).apply_diff(self.files.__getitem__(key).__getitem__(key2).__len__()),True)
-            self.input("\n",True)
+            copy = key
+            self.input("- file: " + str(key) + "\n",True)
+            for key2 in self.files.__getitem__(copy).tree.keys():
+                self.input("   - version: " + str(key2),True)
+                self.input("diff: " + str(self.files.__getitem__(copy).__getitem__(key2)) + "\n",True)
             
     def input(self, str, inPUT = False):
             i = 0
@@ -65,8 +70,8 @@ def main():
     vc = VersionControl()
     
     name = vc.input(str = "Who should I store these files after?\n > ")
-    command = vc.input("Hello " + name + ", here are the commands:\n - save file \n - restore version \n - print log \n - exit \n What would you like to do? \n > ")
-    commandList = {"save file":vc.saveCurrent,"restore version":vc.restoreVersion, "print log":vc.returnLog}
+    command = vc.input("\nHello " + name + ", here are the commands:\n - save file \n - restore version \n - print log \n - exit \n What would you like to do? \n > ")
+    commandList = {"save file":vc.saveCurrent,"restore version":vc.restoreVersion, "print log":vc.returnLog, "exit":exit}
     
     insultList = [
         "Who taught " + name + " how to type!",
@@ -76,17 +81,22 @@ def main():
     
     while True:
         if command == "exit":
-            vc.input("Goodbye " + name + "!\n", True)
+            vc.input("\nGoodbye " + name + "!\n", True)
             exit()
         while command not in commandList:
             command = vc.input(random.choice(insultList) + "\nHere are the commands:\n - save file \n - restore version \n - print log \n - exit \n What would you like to do? \n > ")
-        if command != "print log":
+        if (command != "print log") and (command != "exit") and (command != "restore version"):
             filename = vc.input("What's the file name?\n > ")
             file = vc.input("What's the file?\n > ")
             commandList[command](filename,file)
+        elif command == "restore version":
+            filename = vc.input("What's the file name?\n > ")
+            version = vc.input("What's the version?\n > ")
+            vc.input("\nRestored version: " + version + " of file: " + filename + ":\n", True)
+            vc.input("      "+ commandList[command](filename,version) + "/n", True)
         else:
             commandList[command]()
-        command = vc.input("What would you like to do next?\n" + " here are the commands:\n - save file \n - restore version \n - print log \n - exit \n What would you like to do? \n > ")
+        command = vc.input("\nWhat would you like to do next?\n" + " here are the commands:\n - save file \n - restore version \n - print log \n - exit \n What would you like to do? \n > ")
 
 if __name__ == "__main__":
     main()
